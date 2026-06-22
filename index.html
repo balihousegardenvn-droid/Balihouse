@@ -330,7 +330,7 @@ select.finp{cursor:pointer}
       </div>
       <div class="fi w1"><label class="fl">Số hồ sơ / Mã số</label><input class="finp" id="hs-so" placeholder="VD: 0909123456"/></div>
       <div class="fi w1"><label class="fl">Ngày cấp</label><input class="finp" id="hs-cap" type="date"/></div>
-      <div class="fi w1"><label class="fl">Ngày hết hạn<span class="req">*</span></label><input class="finp" id="hs-han" type="date"/></div>
+      <div class="fi w1"><label class="fl" style="display:flex;align-items:center;justify-content:space-between"><span>Ngày hết hạn<span class="req">*</span></span> <label style="font-weight:normal;font-size:12px;cursor:pointer"><input type="checkbox" id="hs-vth" style="margin-right:4px;vertical-align:middle" onchange="document.getElementById('hs-han').disabled=this.checked; if(this.checked) document.getElementById('hs-han').value='';">Vô thời hạn</label></label><input class="finp" id="hs-han" type="date"/></div>
       <div class="fi w1"><label class="fl">Nơi cấp</label><input class="finp" id="hs-noicap" placeholder="VD: Bảo hiểm XH Q.7"/></div>
       <div class="fi full"><label class="fl">Ghi chú</label><input class="finp" id="hs-gc" placeholder="Thông tin thêm nếu có"/></div>
     </div>
@@ -915,6 +915,8 @@ function openAddHS(nsRi){
   document.getElementById('hs-loai').value='';
   document.getElementById('hs-cap').value='';
   document.getElementById('hs-han').value='';
+  document.getElementById('hs-han').disabled=false;
+  if(document.getElementById('hs-vth')) document.getElementById('hs-vth').checked=false;
   showOv('ovHS');
 }
 function openEditHS(ri){
@@ -926,16 +928,20 @@ function openEditHS(ri){
   document.getElementById('hs-loai').value=h.loai;
   document.getElementById('hs-so').value=h.so;
   document.getElementById('hs-cap').value=toInp(h.cap);
-  document.getElementById('hs-han').value=toInp(h.han);
+  const isVth = h.han === 'Vô thời hạn';
+  if(document.getElementById('hs-vth')) document.getElementById('hs-vth').checked = isVth;
+  document.getElementById('hs-han').disabled = isVth;
+  document.getElementById('hs-han').value = isVth ? '' : toInp(h.han);
   document.getElementById('hs-noicap').value=h.noicap;
   document.getElementById('hs-gc').value=h.gc;
   showOv('ovHS');
 }
 async function saveHS(){
   const loai=document.getElementById('hs-loai').value.trim();
-  const han=document.getElementById('hs-han').value;
+  const isVth=document.getElementById('hs-vth') ? document.getElementById('hs-vth').checked : false;
+  const han=isVth ? 'Vô thời hạn' : document.getElementById('hs-han').value;
   if(!loai){toast('⚠️ Vui lòng chọn Loại hồ sơ','err');return;}
-  if(!han){toast('⚠️ Vui lòng nhập Ngày hết hạn','err');return;}
+  if(!isVth && !document.getElementById('hs-han').value){toast('⚠️ Vui lòng nhập Ngày hết hạn','err');return;}
   const maNS=editHS?editHS.maNS:(addNSForHS?String(addNSForHS.stt):'');
   // Cột: STT|MãNS|LoạiHS|SốHS|NgàyCấp|NgàyHH|NơiCấp|GhiChú|TrạngThái
   const row=[
